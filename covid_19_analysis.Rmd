@@ -1,0 +1,269 @@
+---
+title: "Covid-19 Analysis"
+output:
+  html_document: default
+  pdf_document: default
+date: "2024-06-01"
+---
+
+```{r libraries}
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+```
+
+
+
+```{r data_read}
+df_confirm <- read.csv("time_series_covid19_confirmed_global.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
+df_death <- read.csv("time_series_covid19_deaths_global.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
+df_recovered <- read.csv("time_series_covid19_recovered_global.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
+```
+
+
+
+```{r data_summary}
+summary(df_confirm)
+summary(df_death)
+summary(df_recovered)
+```
+
+
+
+```{r data_analysis1}
+
+date_columns_confirm <- colnames(df_confirm)[grepl("^X\\d+\\.\\d+\\.\\d+$", colnames(df_confirm))]
+
+date_df_confirm <- df_confirm %>%
+  pivot_longer(
+    cols = all_of(date_columns_confirm), 
+    names_to = "date", 
+    values_to = "cases"
+  ) %>%
+  mutate(
+    date = gsub("X", "", date),
+    date = mdy(date)
+  )
+
+
+
+```
+
+
+```{r data analysis2}
+
+date_columns_death <- colnames(df_death)[grepl("^X\\d+\\.\\d+\\.\\d+$", colnames(df_death))]
+
+date_df_death <- df_death %>%
+  pivot_longer(
+    cols = all_of(date_columns_death), 
+    names_to = "date", 
+    values_to = "cases"
+  ) %>%
+  mutate(
+    date = gsub("X", "", date),
+    date = mdy(date)
+  )
+
+
+```
+
+
+```{r data analysis3}
+
+date_columns_recovered <- colnames(df_recovered)[grepl("^X\\d+\\.\\d+\\.\\d+$", colnames(df_recovered))]
+
+date_df_recovered <- df_recovered %>%
+  pivot_longer(
+    cols = all_of(date_columns_recovered), 
+    names_to = "date", 
+    values_to = "cases"
+  ) %>%
+  mutate(
+    date = gsub("X", "", date),
+    date = mdy(date)
+  )
+
+```
+
+
+```{r data_val1}
+str(date_df_confirm)
+str(date_df_death)
+str(date_df_recovered)
+```
+
+
+```{r data analysis4}
+
+summary_data_confirm <- date_df_confirm %>%
+  group_by(`Country.Region`, Lat, Long) %>%
+  summarize(total_cases = sum(cases, na.rm = TRUE))
+
+print(summary_data_confirm)
+
+```
+
+```{r data analysis5}
+
+summary_data_death <- date_df_death %>%
+  group_by(`Country.Region`, Lat, Long) %>%
+  summarize(total_cases = sum(cases, na.rm = TRUE))
+
+print(summary_data_death)
+
+```
+
+
+```{r data analysis6}
+
+summary_data_recovered <- date_df_recovered %>%
+  group_by(`Country.Region`, Lat, Long) %>%
+  summarize(total_cases = sum(cases, na.rm = TRUE))
+
+print(summary_data_recovered)
+
+```
+
+
+```{r data analysis7}
+
+yearly_case_confirm <- date_df_confirm %>%
+  mutate(year = year(date)) %>%
+  group_by(year) %>%
+  summarize(yearly_cases = sum(cases, na.rm = TRUE))
+
+print(yearly_case_confirm)
+
+```
+
+
+```{r data analysis8}
+
+yearly_case_death <- date_df_death %>%
+  mutate(year = year(date)) %>%
+  group_by(year) %>%
+  summarize(yearly_cases = sum(cases, na.rm = TRUE))
+
+print(yearly_case_death)
+
+```
+
+```{r data analysis9}
+
+yearly_case_recovered <- date_df_recovered %>%
+  mutate(year = year(date)) %>%
+  group_by(year) %>%
+  summarize(yearly_cases = sum(cases, na.rm = TRUE))
+
+print(yearly_case_recovered)
+
+```
+
+```{r data analysis10}
+
+monthly_case_confirm <- date_df_confirm %>%
+  mutate(year = year(date), month = month(date)) %>%
+  group_by(year, month) %>%
+  summarize(monthly_cases = sum(cases, na.rm = TRUE))
+
+print(monthly_case_confirm)
+
+```
+
+```{r data analysis11}
+
+monthly_case_death <- date_df_death %>%
+  mutate(year = year(date), month = month(date)) %>%
+  group_by(year, month) %>%
+  summarize(monthly_cases = sum(cases, na.rm = TRUE))
+
+print(monthly_case_death)
+
+```
+
+```{r data analysis12}
+
+monthly_case_recovered <- date_df_recovered %>%
+  mutate(year = year(date), month = month(date)) %>%
+  group_by(year, month) %>%
+  summarize(monthly_cases = sum(cases, na.rm = TRUE))
+
+print(monthly_case_recovered)
+
+```
+
+
+
+
+## Including Plots
+
+
+
+```{r plot1}
+ggplot(yearly_case_confirm, aes(x = factor(year), y = yearly_cases)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Year-wise Sum of COVID-19 Confirmed Cases", x = "Year", y = "Total Confirmed Cases") +
+  theme_minimal()
+
+```
+
+
+```{r plot2}
+ggplot(yearly_case_death, aes(x = factor(year), y = yearly_cases)) +
+  geom_bar(stat = "identity", fill = "green") +
+  labs(title = "Year-wise Sum of COVID-19 Death Cases", x = "Year", y = "Total Death Cases") +
+  theme_minimal()
+
+```
+
+
+```{r plot3}
+ggplot(yearly_case_recovered, aes(x = factor(year), y = yearly_cases)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  labs(title = "Year-wise Sum of COVID-19 Recovered Cases", x = "Year", y = "Total Recovered Cases") +
+  theme_minimal()
+
+```
+
+```{r plot4}
+library(maps)
+
+mapworld <- map_data("world")
+
+ggplot() +
+  geom_polygon(data = mapworld, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+  geom_point(data = summary_data_confirm, aes(x = Long, y = Lat, size = total_cases, color = total_cases), alpha = 0.7) +
+  scale_size_continuous(range = c(1, 10), breaks = c(10, 100, 1000, 10000, 100000)) +
+  scale_color_viridis_c(option = "plasma", trans = "log10") +
+  labs(title = "Country-wise Total COVID-19 Confirmed Cases", size = "Total Cases", color = "Total Confirmed Cases") +
+  theme_minimal()
+
+
+```
+
+```{r plot5}
+
+ggplot() +
+  geom_polygon(data = mapworld, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+  geom_point(data = summary_data_death, aes(x = Long, y = Lat, size = total_cases, color = total_cases), alpha = 0.7) +
+  scale_size_continuous(range = c(1, 10), breaks = c(10, 100, 1000, 10000, 100000)) +
+  scale_color_viridis_c(option = "plasma", trans = "log10") +
+  labs(title = "Country-wise Total COVID-19 Death Cases", size = "Total Cases", color = "Total Death Cases") +
+  theme_minimal()
+
+
+```
+
+```{r plot6}
+
+ggplot() +
+  geom_polygon(data = mapworld, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+  geom_point(data = summary_data_recovered, aes(x = Long, y = Lat, size = total_cases, color = total_cases), alpha = 0.7) +
+  scale_size_continuous(range = c(1, 10), breaks = c(10, 100, 1000, 10000, 100000)) +
+  scale_color_viridis_c(option = "plasma", trans = "log10") +
+  labs(title = "Country-wise Total COVID-19 Recovered Cases", size = "Total Cases", color = "Total Recovered Cases") +
+  theme_minimal()
+
+
+```
