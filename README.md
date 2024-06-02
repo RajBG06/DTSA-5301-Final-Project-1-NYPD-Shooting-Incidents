@@ -23,3 +23,5 @@ Source https://catalog.data.gov/dataset/nypd-shooting-incident-data-historic
 
 Question of Interest
 My objective is to determine whether any of the demographics of the victim (age, sex, or race) can be used to predict if a shooting was fatal.
+
+Next, you will create a reproducible report on COVID-19 data using the Johns Hopkins University website as your primary source. This should be a knitted .Rmd document that shows all your code.
